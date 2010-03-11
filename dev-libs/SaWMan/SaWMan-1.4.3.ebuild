@@ -1,6 +1,8 @@
 # Copyright 1999-2010 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: /var/cvsroot/gentoo-x86/dev-libs/DirectFB/DirectFB-1.4.3.ebuild,v 1.1 2010/01/16 05:21:06 vapier Exp $
+# $Header: Exp $
+
+EAPI="3"
 
 inherit eutils toolchain-funcs
 
@@ -13,7 +15,7 @@ SLOT="0"
 KEYWORDS="~amd64 ~arm ~x86"
 IUSE=""
 
-DEPEND=">=dev-libs/DirectFB-1.4.3"
+DEPEND=">=dev-libs/DirectFB-1.4.3[fusion]"
 
 src_install() {
 	emake DESTDIR="${D}" install || die "make install failed"
