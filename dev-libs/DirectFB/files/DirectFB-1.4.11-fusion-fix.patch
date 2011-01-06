@@ -1,0 +1,10 @@
+--- DirectFB-1.4.11.old/lib/fusion//call.c	2010-10-31 10:49:49.000000000 +0200
++++ DirectFB-1.4.11/work/DirectFB-1.4.11/lib/fusion/call.c	2011-01-05 00:19:01.753000060 +0200
+@@ -31,6 +31,7 @@
+ #include <stdio.h>
+ #include <unistd.h>
+ #include <errno.h>
++#include <sys/stat.h>
+ 
+ #include <fusion/build.h>
+ 

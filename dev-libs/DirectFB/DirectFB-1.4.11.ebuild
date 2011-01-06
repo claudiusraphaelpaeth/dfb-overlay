@@ -1,7 +1,8 @@
 # Copyright 1999-2010 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
-# $Header: Exp $
+# $Header: $
 
+EAPI=2
 inherit eutils toolchain-funcs
 
 # Map Gentoo IUSE expand vars to DirectFB drivers
@@ -30,12 +31,11 @@ SRC_URI="http://directfb.org/downloads/Core/${PN}-${PV:0:3}/${P}.tar.gz
 
 LICENSE="LGPL-2.1"
 SLOT="0"
-KEYWORDS="~amd64 ~arm ~hppa ~ia64 -mips ~ppc ~ppc64 ~sh -sparc ~x86"
-IUSE="debug fbcon fusion gif jpeg mmx png sdl sse sysfs truetype v4l v4l2 X zlib ${IUV} ${IUD}"
+KEYWORDS="alpha amd64 arm hppa ia64 -mips ~ppc ~ppc64 sh -sparc x86"
+IUSE="debug doc fbcon gif jpeg mmx png sdl sse static-libs sysfs truetype v4l v4l2 X zlib ${IUV} ${IUD}"
 
 RDEPEND="sdl? ( media-libs/libsdl )
 	gif? ( media-libs/giflib )
-	fusion? ( >=dev-libs/linux-fusion-8.1.1-r1 )
 	png? ( media-libs/libpng )
 	jpeg? ( media-libs/jpeg )
 	sysfs? ( sys-fs/sysfsutils )
@@ -45,30 +45,15 @@ RDEPEND="sdl? ( media-libs/libsdl )
 DEPEND="${RDEPEND}
 	X? ( x11-proto/xextproto x11-proto/xproto )"
 
-src_unpack() {
-	unpack ${A}
-	cd "${S}"
-	epatch "${FILESDIR}"/${PN}-1.2.7-CFLAGS.patch
-	epatch "${FILESDIR}"/${PN}-1.2.0-headers.patch
-	epatch "${FILESDIR}"/${PN}-1.1.1-pkgconfig.patch
+src_prepare() {
+	epatch \
+		"${FILESDIR}"/${PN}-1.2.7-CFLAGS.patch \
+		"${FILESDIR}"/${PN}-1.2.0-headers.patch \
+		"${FILESDIR}"/${PN}-1.4.11-fusion-fix.patch
 
 	# Avoid invoking `ld` directly #300779
-	find -name Makefile.in -exec sed -i \
-		'/[$](LD)/s:$(LD) -o $@ -r:$(CC) $(CFLAGS) -Wl,-r -nostdlib -o $@:' {} +
-
-	# This is only a partial fix to the X11 order issue #201626.  It's just
-	# the only part we need in order to make the issue go away.  Upstream
-	# bug tracker is currently broken, so list things to do here:
-	#  configure.in:
-	#   - only add -I/usr/X11R6/include to X11_CFLAGS as needed
-	#   - only add -L/usr/X11R6/lib to X11_LIBS as needed
-	#  systems/x11/Makefile.am:
-	#   - add $(X11_LIBS) to end of _LIBADD variables
-	# DirectFB-2.0 seems to be fixed though ...
-	sed -i \
-		-e '/X11_LIBS/s:-L/usr/X11R6/lib::' \
-		-e '/CFLAGS/s:-I/usr/X11R6/include::' \
-		configure
+	find . -name Makefile.in -exec sed -i \
+		'/[$](LD)/s:$(LD) -o $@ -r:$(CC) $(LDFLAGS) $(CFLAGS) -Wl,-r -nostdlib -o $@:' {} +
 }
 
 driver_list() {
@@ -83,7 +68,7 @@ driver_list() {
 	echo ${devs:-none}
 }
 
-src_compile() {
+src_configure() {
 	local sdlconf="--disable-sdl"
 	if use sdl ; then
 		# since SDL can link against DirectFB and trigger a
@@ -96,7 +81,8 @@ src_compile() {
 	fi
 
 	econf \
-		--enable-static \
+		--disable-dependency-tracking \
+		$(use_enable static-libs static) \
 		$(use_enable X x11) \
 		$(use_enable fbcon fbdev) \
 		$(use_enable mmx) \
@@ -105,7 +91,6 @@ src_compile() {
 		$(use_enable png) \
 		$(use_enable gif) \
 		$(use_enable truetype freetype) \
-		$(use_enable fusion multi) \
 		$(use_enable debug) \
 		$(use_enable sysfs) \
 		$(use_enable zlib) \
@@ -115,19 +100,17 @@ src_compile() {
 		--with-gfxdrivers="$(driver_list video_cards ${IUSE_VIDEO_CARDS})" \
 		--with-inputdrivers="$(driver_list input_devices ${IUSE_INPUT_DEVICES})" \
 		--disable-vnc \
-		|| die
-	emake || die
+		--enable-multi
 }
 
 src_install() {
 	emake DESTDIR="${D}" install || die "make install failed"
 	dodoc fb.modes AUTHORS ChangeLog NEWS README* TODO
-	dohtml -r docs/html/*
+	use doc && dohtml -r docs/html/*
 }
 
 pkg_postinst() {
-	ewarn "Each DirectFB update in the 0.9.xx series"
-	ewarn "breaks DirectFB related applications."
+	ewarn "Each DirectFB update breaks DirectFB related applications."
 	ewarn "Please run \"revdep-rebuild\" which can be"
 	ewarn "found by emerging the package 'gentoolkit'."
 	ewarn
