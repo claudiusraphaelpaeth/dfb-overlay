@@ -6,8 +6,7 @@ inherit eutils linux-mod
 
 DESCRIPTION="provide statistical information for the Linux /proc file system"
 HOMEPAGE="http://directfb.org/wiki/index.php/Fusion_Proc_Filesystem"
-SRC_URI="http://directfb.org/downloads/Core/${P}.tar.gz
-	http://directfb.org/downloads/Old/${P}.tar.gz"
+SRC_URI="http://directfb.org/downloads/Core/linux-fusion/${P}.tar.gz"
 
 LICENSE="GPL-2"
 SLOT="0"
@@ -20,7 +19,6 @@ MODULESD_REALTIME_DOCS="AUTHORS ChangeLog README"
 
 src_unpack() {
 	unpack ${A}
-	epatch "${FILESDIR}/linux-fusion-8.1.1.patch"
 	cd "${S}"/linux/drivers/char/fusion
 	ln -s Makefile-2.6 Makefile
 }

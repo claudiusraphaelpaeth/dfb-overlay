@@ -32,9 +32,11 @@ SRC_URI="http://directfb.org/downloads/Core/${PN}-${PV:0:3}/${P}.tar.gz
 LICENSE="LGPL-2.1"
 SLOT="0"
 KEYWORDS="alpha amd64 arm hppa ia64 -mips ~ppc ~ppc64 sh -sparc x86"
-IUSE="debug doc fbcon gif jpeg mmx png sdl sse static-libs sysfs truetype v4l v4l2 X zlib ${IUV} ${IUD}"
+IUSE="debug doc fbcon fusion gif jpeg mmx png sdl sse static-libs sysfs truetype v4l v4l2 X zlib ${IUV} ${IUD}"
 
 RDEPEND="sdl? ( media-libs/libsdl )
+	fusion? ( dev-libs/linux-fusion )
+	!fusion? ( !dev-libs/linux-fusion )
 	gif? ( media-libs/giflib )
 	png? ( media-libs/libpng )
 	jpeg? ( media-libs/jpeg )
