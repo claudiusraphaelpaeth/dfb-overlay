@@ -19,6 +19,7 @@ MODULESD_REALTIME_DOCS="AUTHORS ChangeLog README"
 
 src_unpack() {
 	unpack ${A}
+	epatch "${FILESDIR}/linux-fusion-8.2.0-2.6.37.patch"
 	cd "${S}"/linux/drivers/char/fusion
 	ln -s Makefile-2.6 Makefile
 }

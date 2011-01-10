@@ -1,0 +1,101 @@
+diff -Naur linux-fusion-8.2.0/linux/drivers/char/fusion/entries.c linux-fusion-8.2.0.new/linux/drivers/char/fusion/entries.c
+--- linux-fusion-8.2.0/linux/drivers/char/fusion/entries.c	2010-11-16 13:04:01.000000000 +0200
++++ linux-fusion-8.2.0.new/linux/drivers/char/fusion/entries.c	2011-01-09 19:05:28.328000190 +0200
+@@ -43,7 +43,11 @@
+ 	entries->class = class;
+ 	entries->ctx = ctx;
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 37)
++	sema_init(&entries->lock, 1);
++#else
+ 	init_MUTEX(&entries->lock);
++#endif
+ }
+ 
+ void fusion_entries_deinit(FusionEntries * entries)
+@@ -225,7 +229,11 @@
+ 	entry->id = ++entries->ids;
+ 	entry->pid = current->pid;
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 37)
++	sema_init(&entry->lock, 1);
++#else
+ 	init_MUTEX(&entry->lock);
++#endif
+ 
+ 	init_waitqueue_head(&entry->wait);
+ 
+diff -Naur linux-fusion-8.2.0/linux/drivers/char/fusion/fusiondev.c linux-fusion-8.2.0.new/linux/drivers/char/fusion/fusiondev.c
+--- linux-fusion-8.2.0/linux/drivers/char/fusion/fusiondev.c	2010-11-16 13:04:01.000000000 +0200
++++ linux-fusion-8.2.0.new/linux/drivers/char/fusion/fusiondev.c	2011-01-09 19:07:55.911000191 +0200
+@@ -71,7 +71,11 @@
+ #define NUM_MINORS 8
+ 
+ static FusionDev *fusion_devs[NUM_MINORS] = { 0 };
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 37)
++static DEFINE_SEMAPHORE(devs_lock);
++#else
+ static DECLARE_MUTEX(devs_lock);
++#endif
+ 
+ #if LINUX_VERSION_CODE < KERNEL_VERSION(2, 6, 0)
+ static devfs_handle_t devfs_handles[NUM_MINORS];
+@@ -194,7 +198,11 @@
+ {
+ 	int ret;
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 37)
++	sema_init(&dev->enter_lock, 1);
++#else
+ 	init_MUTEX(&dev->enter_lock);
++#endif
+ 	init_waitqueue_head(&dev->enter_wait);
+ 
+ 	ret = fusionee_init(dev);
+diff -Naur linux-fusion-8.2.0/linux/drivers/char/fusion/fusionee.c linux-fusion-8.2.0.new/linux/drivers/char/fusion/fusionee.c
+--- linux-fusion-8.2.0/linux/drivers/char/fusion/fusionee.c	2010-11-16 13:04:01.000000000 +0200
++++ linux-fusion-8.2.0.new/linux/drivers/char/fusion/fusionee.c	2011-01-09 19:08:57.779000191 +0200
+@@ -114,7 +114,11 @@
+ {
+ 	init_waitqueue_head(&dev->fusionee.wait);
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 37)
++	sema_init(&dev->fusionee.lock, 1);
++#else
+ 	init_MUTEX(&dev->fusionee.lock);
++#endif
+ 
+ 	create_proc_read_entry("fusionees", 0, dev->proc_dir,
+ 			       fusionees_read_proc, dev);
+@@ -171,7 +175,11 @@
+ 	fusionee->force_slave = force_slave;
+ 	fusionee->mm = current->mm;
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 37)
++	sema_init(&fusionee->lock, 1);
++#else
+ 	init_MUTEX(&fusionee->lock);
++#endif
+ 
+ 	init_waitqueue_head(&fusionee->wait_receive);
+ 	init_waitqueue_head(&fusionee->wait_process);
+diff -Naur linux-fusion-8.2.0/linux/drivers/char/fusion/modules.order linux-fusion-8.2.0.new/linux/drivers/char/fusion/modules.order
+--- linux-fusion-8.2.0/linux/drivers/char/fusion/modules.order	1970-01-01 03:00:00.000000000 +0300
++++ linux-fusion-8.2.0.new/linux/drivers/char/fusion/modules.order	2011-01-09 19:09:42.855000192 +0200
+@@ -0,0 +1 @@
++kernel//tmp/linux-fusion-8.2.0/linux/drivers/char/fusion/fusion.ko
+diff -Naur linux-fusion-8.2.0/linux/drivers/char/fusion/shmpool.c linux-fusion-8.2.0.new/linux/drivers/char/fusion/shmpool.c
+--- linux-fusion-8.2.0/linux/drivers/char/fusion/shmpool.c	2010-11-16 13:04:01.000000000 +0200
++++ linux-fusion-8.2.0.new/linux/drivers/char/fusion/shmpool.c	2011-01-09 19:09:39.200000190 +0200
+@@ -71,7 +71,11 @@
+ 
+ /******************************************************************************/
+ 
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(2, 6, 37)
++static DEFINE_SEMAPHORE(addr_lock);
++#else
+ static DECLARE_MUTEX(addr_lock);
++#endif
+ static FusionLink *addr_entries;
+ static void *addr_base = FUSION_SHM_BASE + 0x80000;
+ 
