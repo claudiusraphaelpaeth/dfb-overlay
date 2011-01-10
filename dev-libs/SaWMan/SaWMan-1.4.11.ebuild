@@ -15,7 +15,7 @@ SLOT="0"
 KEYWORDS="~amd64 ~arm ~x86"
 IUSE=""
 
-DEPEND=">=dev-libs/DirectFB-1.4.3[fusion]"
+DEPEND=">=dev-libs/DirectFB-1.4.11"
 
 src_install() {
 	emake DESTDIR="${D}" install || die "make install failed"
